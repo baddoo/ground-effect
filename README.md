@@ -21,7 +21,7 @@ The files correspond to different conformal maps as such:
 File | Mapping
 ------------ | -------------
 ```circularWing.m``` | circular wing map
-```flatWng.m``` | flat plate map
+```flatWing.m``` | flat plate map
 ```circularArcWing.m```| circular arc wing map
 ```centeredCircularArcWing.m``` | centered circular arc wing map
 
