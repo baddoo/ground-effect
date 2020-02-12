@@ -22,8 +22,8 @@
 
 function P = P(zeta,varargin)
 
-% This function tells you what N you should use to truncate the series to
-% achieve a tolerance of vtol for interior radius qv and C truncation nC.
+% This function tells you what N you should use to truncate the series if
+% th
 bound = @(vtol,qv,nC) round(1 + erfcinv(qv*vtol/abs(C(qv,nC))*sqrt(log(1/qv)/pi))./sqrt(log(1/qv)));
 
 switch nargin
@@ -32,6 +32,7 @@ switch nargin
         tol = 1e-3;
         N(1) = 1e3;
         N(2) = bound(tol,q,N(1));
+        
     case 2
         q = varargin{1};
         tol = 1e-3;

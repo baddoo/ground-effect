@@ -2,7 +2,7 @@ N = 50;
 Ninf = 100;
 nq = 5;
 
-q = linspace(.9,1,nq+2); q(1) = []; q(end) = [];
+q = linspace(0,1,nq+2); q(1) = []; q(end) = [];
 circ=exp(1i*linspace(0,2*pi,200));
 
 err = zeros(N,nq);
@@ -20,16 +20,17 @@ err(j,l) = norm(PfunDD(pts,q(l),j')-PfunDD(pts,q(l),Ninf),'inf');
 PHI = @(nv,zv) exp(-.25*log(abs(zv)).^2./log(q(l)))...
              .*(1+erf(((2*nv-1)*log(q(l))+log(abs(zv)))./(2*sqrt(-log(q(l))))))...
              .*sqrt(-pi*abs(zv)./log(q(l)))/2./q(l)^.25;
-% Zeroth derivative         
 PHI = @(nv,zv) sqrt(pi/log(1/q(l)))*erfc((nv-1)*sqrt(log(1/q(l))))/q(l); 
-% First derivative
 PHI = @(nv) 1e-3-(q(l)^((nv-1)^2)+sqrt(pi*log(1/q(l)))*erfc((nv-1)*sqrt(log(1/q(l)))))...
                 /q(l)/log(q(l));
-% Second derivative            
-PHI = @(nv) abs(C(q(l),1e3)*q(l)/2/log(1/q(l)).^1.5)...
-                *(sqrt(pi)*erfc((nv-1)*sqrt(log(1/q(l))))...
-                  + 2*nv*q(l)^((nv-1)^2)*sqrt(log(1/q(l))));
-        
+PHI = @(nv) q(l)*abs(C(q(l),1e3)*(sqrt(pi)*erfc((nv-1)*sqrt(log(1/q(l))))...
+                                    + 2*nv*q(l)^((nv-1)^2)*sqrt(log(1/q(l))))...
+                       
+% PHID = @(nv,zv) exp(-log(zv).^2/4/log(q(l)))*q(l)^-(nv+.25)/4./zv/log(q(l)).^2 ...
+%                 .*(-sqrt(pi*zv)*q(l)^nv*imag(log(q(l)).^1.5)...
+%                  -2*exp(log(zv).^2/log(q(l).^4))*q(l)^(nv.^2+.25).*zv.^N*log(q(l))...
+%                  + sqrt(-pi*zv*log(q(l)))*q(l).^nv.*(erf(-((2*nv-1)*log(q(l))+log(abs(zv)))./(2*sqrt(-log(q(l))))).*log(q(l)./zv)+log(zv)));
+%          
 %tic;a = fsolve(PHI,100); toc;
 bound(j,l) = abs(calcA(q(l),j))*norm(PHI(j),'inf');         
 

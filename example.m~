@@ -1,5 +1,4 @@
-addpath('maps','primeP','complex-potentials')
-
+addpath(
 
 
 
