@@ -40,6 +40,11 @@ switch nargin
     case 3
         q = varargin{1};
         N = varargin{2};
+        if isempty(N)
+            tol = 1e-3;
+            N(1) = 1e3;
+            N(2) = bound(tol,q,N(1));  
+        end  
 end
 
 n2 = permute(-N(2):N(2),[1,3,2]);

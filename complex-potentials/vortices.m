@@ -4,7 +4,6 @@
 %   vortices(BETA,Q,N) evaluates the constant C for the annulus with interior radius Q 
 %   and truncation N.
 %
-%
 %   Cite: Exact solutions for ground effect, P. J. Baddoo, M. Kurt, L. J.
 %         Ayton, K. W. Moored, JFM Rapids, 2020
 
