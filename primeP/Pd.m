@@ -26,7 +26,7 @@ function Pd = Pd(zeta,varargin)
 % This tells us the error for truncation nS
 err = @(nS,qv,nC) 2*abs(C(qv,nC)*(qv^((nS-1)^2)+sqrt(pi*log(1/qv))*erfc((nS-1)*sqrt(log(1/qv))))/qv/log(qv));
 
-% Selection of N for non-derivative to be used as initial guess
+% Selection of N for P to be used as initial guess
 bound = @(vtol,qv,nC) round(1 + erfcinv(qv*vtol/abs(C(qv,nC))*sqrt(log(1/qv)/pi))./sqrt(log(1/qv)));
 
 opts = optimset('Display','off');
@@ -37,7 +37,6 @@ switch nargin
         tol = 1e-3;
         N(1) = 1e3;
         N(2) = round(fsolve(@(nS) tol - err(nS,q,N(1)),bound(tol,q,N(1)),opts));
-        
     case 2
         q = varargin{1};
         tol = 1e-3;
@@ -46,6 +45,11 @@ switch nargin
     case 3
         q = varargin{1};
         N = varargin{2};
+        if isempty(N)
+            tol = 1e-3;
+            N(1) = 1e3;
+            N(2) = round(fsolve(@(nS) tol - err(nS,q,N(1)),bound(tol,q,N(1)),opts));
+        end  
 end
 
 n2 = permute(-N(2):N(2),[1,3,2]);
