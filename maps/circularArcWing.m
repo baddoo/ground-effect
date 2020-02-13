@@ -1,6 +1,8 @@
 %   Returns a set of function handles corresponding to the circular arc wing
-%   map of unit length corresponding to annulus of interior radius q.
+%   corresponding to annulus of interior radius q.
 %   
+%   Note that the length of the wing has not been normalised.
+%
 %   Cite: Exact solutions for ground effect, P. J. Baddoo, M. Kurt, L. J.
 %         Ayton, K. W. Moored, JFM Rapids, 2020
 
@@ -19,18 +21,11 @@ mapd  = @(zVar) (Pd(zVar.*conj(gamma),q,N).*conj(gamma).*(P(zVar./gamma,q,N).*P(
 % Find zeros of derivative on interior circle (correspond to pre-images locations of leading
 % and trailing edges).
 f = @(th) abs(mapd(q*exp(1i*th))); 
-%fp = @(th) real(mapd(q*exp(1i*th)).*conj(1i*q*exp(1i*th).*mapdd(q*exp(1i*th))))./abs(mapd(q*exp(1i*th)));
-% Set tolerance for root finding
-% tol = 1e-10;
 opts = optimset('Display','off');
 thv(1) = fsolve(f,rand(1),opts);
-%thv(1) = mod(myNewton(f,fp,0,tol),2*pi);
 % Now extract found root from function with smooth, periodic regulariser.
 f1 = @(th) f(th)./abs(sin((th-thv(1))/2));
-% f1p= @(th) (fp(th).*abs(sin((th-thv(1))/2))-f(th).*sign(sin((th-thv(1))/2))/2.*cos((th-thv(1))/2))...
-%             ./abs(sin((th-thv(1))/2)).^2;
 thv(2) = fsolve(f1,0,opts);        
-%thv(2) = myNewton(f1,f1p,0,tol);
 
 % Sort zeros into leading and trailing edges
 A1 = 1./exp(1i*angle(map(-1)-map(1i)));
@@ -38,8 +33,18 @@ A1 = 1./exp(1i*angle(map(-1)-map(1i)));
 zt = q*exp(1i*thv(ind));
 
 % Find length of plate to rescale
-plateLength = abs(diff(A1*map(zt)));
-A =  A1./plateLength; s = -real(A*map(zt(1)))-1i*imag(A*map(-1));
+% zs = A1*map([zt,-q*exp(1i*mean(zt))]); 
+% ma = imag(zs(2)-zs(1))./real(zs(2)-zs(1));
+% mb = imag(zs(3)-zs(2))./real(zs(3)-zs(2));
+% cx = (ma*mb*imag(zs(1)-zs(3)) + mb*real(zs(1)+zs(2)) - ma*real(zs(2)+zs(3)))...
+%        ./(2*(mb-ma));
+% cy = -1/ma*real(cx-(zs(1)+zs(2))/2) + imag(zs(1)+zs(2))/2;
+% c = complex(cx,cy)
+% rad = abs(zs(1) - c);
+% (pi+angle(-(c-A1*map(zt(2)))./(c-A1*map(zt(1)))));
+
+wingLength = 1;
+A = A1./wingLength; s = -real(A*map(zt(1)))-1i*imag(A*map(-1));
 
 % Find shift distance
 f   = @(zVar) A*map(zVar) + s;
