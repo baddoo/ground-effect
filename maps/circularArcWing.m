@@ -9,7 +9,7 @@
 
 function [f,fd,a,zt,d] = circularArcWing(gamma,q)
 
-N = [1e3,1e2];
+N = [1e3,round(100*sqrt(q))];
 % Present the inital map
 map = @(zVar) P(zVar.*conj(gamma),q,N)./(P(zVar./gamma,q,N).*P(conj(gamma),q,N)-P(1/gamma,q,N).*P(zVar.*conj(gamma),q,N));
 
@@ -51,8 +51,8 @@ f   = @(zVar) A*map(zVar) + s;
 fd  = @(zVar) A*mapd(zVar);
 %fdd = @(zVar) A*mapdd(zVar);
 
-L = 1;
-a = 1;
+a = gamma*A*P(conj(gamma),q,N)...
+    ./(Pd(1/gamma,q,N).*P(conj(gamma),q,N)-abs(gamma).^2*Pd(conj(gamma),q,N)*P(1/gamma,q,N));
 
 d = imag(f(zt(1)));
 

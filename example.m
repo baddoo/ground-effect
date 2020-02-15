@@ -1,14 +1,17 @@
 addpath('maps','primeP','complex-potentials')
 
-q = .2;
+q = .3;
 nr = 100; nt = 100;
 zr = linspace(q,1,nr+2); %zr(1) = []; zr(end) = [];
 zt = linspace(0,2*pi,nt);
 zeta = zr.*exp(1i*zt');
 zetab = [q,1].*exp(1i*zt');
 plot(zeta);
-
+phi = pi/7;
+alpha = 1;
 [f,fd,a] = circularWing(q);
+[f,fd,a,zt,d] = flatWing(alpha,q);
+[f,fd,a,zt,d] = centeredCircularArcWing(phi,q)
 
 flow = 'strain';
 %flow = 'vortices';
@@ -30,7 +33,7 @@ clim = [0,1];
 elseif strcmp(flow,'uniform')
     
 [potential,compVel] = uniform(q,a);
-vals = imag(linspace(potential(-1),potential(.9),100));
+vals = imag(linspace(potential(-1),potential(.9),10));
 
 clim = [0,1.5];
 
@@ -39,16 +42,19 @@ end
 z = f(zeta);
 zb = f(zetab);
 
-ax = [-4,4,0,15];
+ax = [-4,4,0,2];
 subplot(2,1,1)
-plot(z,'k','LineWidth',2);
+plot(z(:,1:10:end),'k','LineWidth',2);
 hold on
+plot(f(zt(1)),'mo')
+plot(f(zt(2)),'go')
+
 plot(zb(:,1),'r','LineWidth',3)
 plot(zb(:,2),'b','LineWidth',3)
 hold off
 axis equal
 axis(ax)
-
+return
 subplot(2,1,2)
 pcolor(real(z),imag(z),real(compVel(zeta)./fd(zeta)));
 colormap jet; shading interp; caxis(clim); colorbar

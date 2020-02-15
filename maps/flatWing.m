@@ -9,6 +9,7 @@ function [f,fd,a,zt,d] = flatWing(alpha,q)
 
 N = [1e3,1e2];
 % Present the inital map
+if alpha ~= 0 
 map = @(zVar) P(zVar.*exp(2i*alpha),q,N)./P(zVar,q,N);
 
 % Differentiate initial map
@@ -41,15 +42,31 @@ zt = q*exp(1i*thv(ind));
 
 % Find length of plate to rescale
 plateLength = abs(diff(A1*map(zt)));
-A =  A1./plateLength; s = -real(A*map(zt(1)));
+A =  A1./plateLength;
 
-% Find shift distance
-f   = @(zVar) A*map(zVar) + s;
-fd  = @(zVar) A*mapd(zVar);
-%fdd = @(zVar) A*mapdd(zVar);
+k3 = permute(1:1e3,[1,3,2]);
+L = prod((1-q.^(2*k3)).^2,3);
+a = -A*P(exp(2i*alpha),q,N)./L;
 
-d = imag(f(zt(1)));
-L = 1;
-a = A*P(exp(2i*alpha))./L;
+else
+
+A1 = -1i;    
+map = @(zVar) zVar.*Pd(zVar,q,N)./P(zVar,q,N);
+
+% Differentiate initial map
+mapd  = @(zVar) Pd(zVar,q,N)./P(zVar,q,N) + zVar.*Pdd(zVar,q,N)./P(zVar,q,N)...
+                -zVar.*Pd(zVar,q,N).^2./P(zVar,q,N).^2;
+zt = 1i*[q,-q]; 
+
+plateLength = abs(diff(A1*map(zt)));
+A =  A1./plateLength;
+
+a = A;
 
 end
+
+s = -real(A*map(zt(1))) - 1i*imag(A*map(-1));
+f   = @(zVar) A*map(zVar) + s;
+fd  = @(zVar) A*mapd(zVar);
+d = imag(f(zt(1)));    
+

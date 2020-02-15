@@ -7,17 +7,17 @@
 
 function [f,fd,a,zt,d] = centeredCircularArcWing(phi,q)
 
-N = [];
-% Present the inital map
-map = @(zVar) -P(sqrt(zVar).*exp(1i*phi),q,N).*P(-sqrt(zVar).*exp(1i*phi),q,N).*P(q*sqrt(zVar),q,N).*P(-q*sqrt(zVar),q,N)./...
-              (P(q*sqrt(zVar).*exp(1i*phi),q,N).*P(-q*sqrt(zVar).*exp(1i*phi),q,N).*P(sqrt(zVar),q,N).*P(-sqrt(zVar),q,N)).*exp(-1i*phi);
+N = [1e3,round(100*sqrt(q))];
+% Present the ignital map
+map = @(zVar) P(sqrt(zVar).*exp(1i*phi),q,N).*P(-sqrt(zVar).*exp(1i*phi),q,N).*P(q*sqrt(zVar),q,N).*P(-q*sqrt(zVar),q,N)./...
+              (P(q*sqrt(zVar).*exp(1i*phi),q,N).*P(-q*sqrt(zVar).*exp(1i*phi),q,N).*P(sqrt(zVar),q,N).*P(-sqrt(zVar),q,N));
 
 % Differentiate initial map
-mapd  = @(zVar) -((Pd(zVar*exp(2i*phi),q.^2,N)*exp(2i*phi).*P(q^2*zVar,q^2,N)+P(zVar*exp(2i*phi),q.^2,N).*Pd(q^2*zVar,q^2,N)*q^2).*...
+mapd  = @(zVar) ((Pd(zVar*exp(2i*phi),q.^2,N)*exp(2i*phi).*P(q^2*zVar,q^2,N)+P(zVar*exp(2i*phi),q.^2,N).*Pd(q^2*zVar,q^2,N)*q^2).*...
                   P(q^2*zVar.*exp(2i*phi),q^2,N).*P(zVar,q^2,N)...
                   -(q^2*exp(2i*phi)*Pd(q^2*zVar.*exp(2i*phi),q^2,N).*P(zVar,q^2,N)+P(q^2*zVar.*exp(2i*phi),q^2,N).*Pd(zVar,q^2,N)).*...
                   P(zVar*exp(2i*phi),q.^2,N).*P(q^2*zVar,q^2,N))...
-                  ./(P(q^2*zVar.*exp(2i*phi),q^2,N).*P(zVar,q^2,N)).^2.*exp(-1i*phi);        
+                  ./(P(q^2*zVar.*exp(2i*phi),q^2,N).*P(zVar,q^2,N)).^2;        
 
 % Find zeros of derivative on interior circle (correspond to pre-images locations of leading
 % and trailing edges).
@@ -26,7 +26,7 @@ f = @(th) abs(mapd(q*exp(1i*th)));
 % Set tolerance for root finding
 % tol = 1e-10;
 opts = optimset('Display','off');
-thv(1) = fsolve(f,rand(1),opts);
+thv(1) = fsolve(f,2*pi*rand(1),opts);
 %thv(1) = mod(myNewton(f,fp,0,tol),2*pi);
 % Now extract found root from function with smooth, periodic regulariser.
 f1 = @(th) f(th)./abs(sin((th-thv(1))/2));
@@ -41,7 +41,7 @@ A1 = 1./exp(1i*angle(map(-1)-map(1i)));
 zt = q*exp(1i*thv(ind));
 
 % Find length of plate to rescale
-wingLength = angle((A1*map(zt(1)))./(A1*map(zt(2))));
+wingLength = abs(angle((A1*map(zt(1)))./(A1*map(zt(2)))));
 A = A1./wingLength; s = -real(A*map(zt(1)))-1i*imag(A*map(-1));
 
 % Find shift distance
@@ -49,9 +49,11 @@ f   = @(zVar) A*map(zVar) + s;
 fd  = @(zVar) A*mapd(zVar);
 %fdd = @(zVar) A*mapdd(zVar);
 
-L = 1;
-a = 1;
+k3 = permute(1:1e3,[1,3,2]);
+L = prod((1-q.^(2*k3)).^2,3);
 
+a = -2*A/L*P(exp(1i*phi),q,N)*P(-exp(1i*phi),q,N).*P(q,q,N).*P(-q,q,N)...
+    ./(P(q*exp(1i*phi),q,N)*P(-q*exp(1i*phi),q,N).*P(-1,q,N));
 d = imag(f(zt(1)));
 
 end

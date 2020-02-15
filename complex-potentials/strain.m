@@ -11,7 +11,7 @@ function [potential,compVel] = strain(q,a,varargin)
 switch nargin
     case 2
         %N = [];
-        N = [1e2,10];
+        N = [1e3,round(100*sqrt(q))];
     case 3
         N = varargin{1};
 end
