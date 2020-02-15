@@ -50,13 +50,25 @@ a = -A*P(exp(2i*alpha),q,N)./L;
 
 else
 
+    
 A1 = -1i;    
 map = @(zVar) zVar.*Pd(zVar,q,N)./P(zVar,q,N);
 
 % Differentiate initial map
 mapd  = @(zVar) Pd(zVar,q,N)./P(zVar,q,N) + zVar.*Pdd(zVar,q,N)./P(zVar,q,N)...
                 -zVar.*Pd(zVar,q,N).^2./P(zVar,q,N).^2;
-zt = 1i*[q,-q]; 
+% Find zeros of derivative on interior circle (correspond to pre-images locations of leading
+% and trailing edges).
+f = @(th) abs(mapd(q*exp(1i*th)));
+
+opts = optimset('Display','off');
+thv(1) = fsolve(f,pi/4,opts);
+f1 = @(th) f(th)./abs(sin((th-thv(1))/2));
+thv(2) = fsolve(f1,pi/4,opts);        
+
+% Sort zeros into leading and trailing edges
+[~,ind] = sort(real(A1*map(q.*exp(1i*thv))));
+zt = q*exp(1i*thv(ind));
 
 plateLength = abs(diff(A1*map(zt)));
 A =  A1./plateLength;

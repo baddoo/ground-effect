@@ -19,7 +19,7 @@ switch nargin
 end
 
 % Number of points in integration. Should vary depending on application.
-ni = 200;
+ni = 50;
 
 tInt = linspace(0,2*pi,ni + 1); tInt(end) = [];
 tInt4 = permute(tInt,[1,4,3,2]);
@@ -38,8 +38,8 @@ g = @(zVar) M(zVar)./zVar.^2;
 
 % Regularise kernel of potential function
 regKerPot = @(zVar0,zVar1) Pd(zVar0./zVar1,q,N)./P(zVar0./zVar1,q,N) + zVar1./(zVar1-zVar0);
-pot1 = @(zVar)  zVar/pi.*sum(1i*zInt4.*g(zInt4).*regKerPot(zVar,zInt4),4)*2*pi/ni;
-pot2 = @(zVar) -zVar/pi.*sum(1i*zInt4.^2.*(g(zInt4)-g(zVar))./(zInt4-zVar),4)*2*pi/ni;
+pot1 = @(zVar) zVar/pi.*sum(1i*zInt4.*g(zInt4).*regKerPot(zVar,zInt4),4)*2*pi/ni;
+pot2 = @(zVar)  zVar/pi.*sum(1i*zInt4.^2.*(g(zInt4)-g(zVar))./(zInt4-zVar),4)*2*pi/ni;
 
 % Combine potentials
 potential = @(zVar) pot1(zVar) + pot2(zVar);
@@ -50,6 +50,7 @@ potential = @(zVar) pot1(zVar) + pot2(zVar);
 velKer =  @(zVar0,zVar1) Pd(zVar0./zVar1,q,N)./P(zVar0./zVar1,q,N) ...
          + zVar0./zVar1.*Pdd(zVar0./zVar1,q,N)./P(zVar0./zVar1,q,N) ...
          - zVar0./zVar1.*Pd(zVar0./zVar1,q,N).^2./P(zVar0./zVar1,q,N).^2;
-compVel = @(zVar) 1/pi.*sum(1i*zInt4.*g(zInt4).*velKer(zVar,zInt4),4)*2*pi/ni;
+compVel = @(zVar) -1/pi.*sum(1i*zInt4.*g(zInt4).*velKer(zVar,zInt4),4)*2*pi/ni;
+
 
 end

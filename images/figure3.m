@@ -1,95 +1,118 @@
 addpath('../maps','../primeP','../complex-potentials')
-q = 0.3;
-%%%%%%%%%%%%%% Define mappings
 
-beta = 1.5*q*exp(1i*(pi/4+.2));
-phi = 5*pi/8;
+imageFolder = '../images/';
+
+q = 0.3;
 c0 = exp(1i*linspace(0,2*pi)');
 c1 = q*exp(1i*linspace(0,2*pi)');
-confFill = [0.9,0.9,0.9];
 
-zg = linspace(q,1,200)'.*exp(1i*linspace(0,2*pi,200));
-nga = 10; ngb = 10;
-zg(abs(zg-1)<1e-1)=nan;
+% Define grid in zeta plane
+zg = linspace(q,1,300)'.*exp(1i*linspace(0,2*pi,300));
+zg(abs(zg-1)<1e-1)=nan; % Remove points close to 1.
 
-for j = 5;%[1:3,5]
-    if j ==1
-    % Straining flow with circular wing
-    [f,fp,a,d] = circularWing(q);
-    vals = 4*[-linspace(0,1,20),linspace(0,1,20)];
-    [potential,compVel] = strain(q,a);
-    ax = [-4,4,-.2,4];
-    elseif j ==2
-    % Flat plate wing with circulatory flow
-    aoa = pi/8;
-    [f,fp,a,zt,d] = flatWing(aoa,q);
-    vals = linspace(0,log(q),20)/2/pi;
-    [potential,compVel] = circulatory;
-    ax = [-.5,1.5,-.1,1];
-    elseif j ==3
-    % Zero aoa flat plate wing with motion
-    [f,fp,a,zt,d] = flatWing(0,q);
-    vals = linspace(-1,1,50);
-    ni = 200;
-    zInt = q*exp(1i*linspace(0,2*pi,ni)); zInt4 = permute(zInt,[1,4,3,2]);
-    D = f(q); DDot = -1i; aDot = 0;
-    I = -1/(2i*pi).*trapz(zInt,Mprime(zInt4,f,D,DDot,aDot)./zInt4,4);
-    M = @(zVar) Mprime(zVar,f,D,DDot,aDot)+ I;
-    movePot = @(zVar) zVar/pi.*trapz(zInt,M(zInt4).*PfunD(zVar./zInt4,q,N)./Pfun(zVar./zInt4,q,N)./zInt4.^2,4);
-    potential  = movePot;
-    ax = [-2,2,-.1,2];
-    elseif j ==4
-    % Circular arc wing with vortex
-    gamma = .45*exp(.6i*pi/4);
-    [f,fp,a,zt,d] = circularArcWing(gamma,q);
-    [potential,compVel] = vortices(beta,q);
-    vals = -linspace(0.01,.5,20);
-    ax = .5*[-2,2,-.1,2];
-    elseif j ==5
-    % Centered circular arc with with uniform flow and Kutta condition   
-    [f,fp,a,zt,d] = centeredCircularArcWing(phi,q);
-    [uniPot,uniVel] = uniform(q,a);
-    [cirPot,cirVel] = circulatory;
-    circ = zt(2)*2i*pi*uniVel(zt(2));
-    potential = @(zVar) circ*cirPot(zVar) + uniPot(zVar);
-    vals = imag(potential(q))+linspace(-1,1,40);
-    ax = [-1.5,2,-.1,1];
+for j = 1:5
+    
+    switch j
+        
+    case 1 % Straining flow with circular wing
+        
+        [f,fp,a,d] = circularWing(q); % Define map
+        vals = [-linspace(0,5,20),linspace(0,5,20)]; % Choose streamlines to display
+        [potential,compVel] = strain(q,a); % Define straining flow potential and comp. vel
+        xDiff = 2;
+        myAx = -.5+[.5-xDiff,.5+xDiff]; % Set x-limits
+
+    case 2 % Flat plate wing with circulatory flow
+        
+        aoa = pi/8; % Define angle of attack
+        [f,fp,a,zt,d] = flatWing(aoa,q); % Define map
+        vals = linspace(0,log(q),10)/2/pi; % Choose streamlines to display
+        [potential,compVel] = circulatory; % Define circulatory flow potential and comp. vel
+        xDiff = 1.2;
+        myAx = [cos(aoa)/2-xDiff,cos(aoa)/2+xDiff]; % Set x-limits
+    
+    case 3 % Zero aoa flat plate wing with motion
+        
+        [f,fp,a,zt,d] = flatWing(0,q); % Define map
+        ni = 200;
+        dDot = 1; aDot = 0;
+        [potential,compVel] = movement(f,d,dDot,aDot,q);
+        vals = linspace(-1,1,45); vals(ceil(end/2))=[]; % Choose streamlines to display
+        xDiff = 1.3;
+        myAx = [.5-xDiff,.5+xDiff]; % Set x-limits limits
+        
+    case 4 % Circular arc wing with vortex
+
+        beta = 1.5*q*exp(1i*(pi/4+.2)); % Define vortex location in zeta-plane
+        gamma = .45*exp(.6i*pi/4); % Define map parameter
+        [f,fp,a,zt,d] = circularArcWing(gamma,q); % Define map
+        [potential,compVel] = vortices(beta,q); % Define vortices potential and comp. vel
+        vals = -linspace(0.01,.5,20); % Choose streamlines to display
+        xDiff = 1.2;
+        myAx = [.2-xDiff,.2+xDiff]; % Set x-limits
+        
+    case 5 % Centered circular arc with with uniform flow and Kutta condition   
+        
+        phi = 5*pi/8; % Define map parameter
+        [f,fp,a,zt,d] = centeredCircularArcWing(phi,q); % Define map
+        [uniPot,uniVel] = uniform(q,a); % Define uniform flow potential and comp. vel
+        [cirPot,cirVel] = circulatory; % Define circulatory flow potential and comp. vel
+        circ = zt(2)*2i*pi*uniVel(zt(2));
+        potential = @(zVar) circ*cirPot(zVar) + uniPot(zVar);
+        vals = imag(potential(q))+linspace(-1,1,40); % Choose streamlines to display
+        xDiff = 1.5;
+        myAx = [.5-xDiff,.5+xDiff]; % Set x-limits
+                
     end
 
-% physical plot
-f2 = figure(2);
+    
+%% Plots    
+f2 = figure(1);
 clf
+
+% Grey out area under the ground
+confFill = [0.9,0.9,0.9]; % Define grey colour
 fill([-5 5 5 -5],[-.2 -.2 0 0],confFill,'EdgeColor',confFill);
 hold on
 
+% Plot streamlines
 contour(real(f(zg)),imag(f(zg)),imag(potential(zg)),vals,'k','LineWidth',.5)
-if j ==5
+
+% Set limits of axes so that the aspect ratio is always the same
+xlim(myAx);
+ar1 = .55; ar2 = .05*ar1;
+ylim([-2*ar2*xDiff,2*(ar1-ar2)*xDiff]);
+
+% Special cases
+switch j
+    case 1
+    fill(real(f(c1)),imag(f(c1)),confFill);
+    case 4
+   scatter(real(f(beta)),imag(f(beta)),150,'k','MarkerFaceColor','m') 
+    case 5
     col = lines;
     v = [imag(potential(q)) imag(potential(q))];
     contour(real(f(zg)),imag(f(zg)),imag(potential(zg)),v,'LineColor','g','LineWidth',3)
+    axis([-1.1,1.9,-.05,1.1])
 end
-if j == 4
-   scatter(real(f(beta)),imag(f(beta)),150,'k','MarkerFaceColor','g') 
-end
+
 plot(f(c0),'b','LineWidth',7)
 plot(f(c1),'r','LineWidth',7)
-if j==1
-fill(real(f(c1)),imag(f(c1)),confFill);
-end
 
-axis(ax);
 hold off
 axis off
+
+% Make plot fill whole picture
 ax = gca;
 set(ax,'Units', 'normalized', 'Position', [0 0 1 1])
+
+% Rescale figure size
 rat = range(ax.YLim)./range(ax.XLim);
 f2.Position(3) = 1/rat*f2.Position(4);
-%print(['z-strm',num2str(j)],'-dpng','-r100');
 
+% Save figure
+if ~isempty(imageFolder)
+print([imageFolder '/z-strm',num2str(j)],'-dpng','-r200');
 end
-
-function Mp = Mprime(zVar,f,D,DDot,aDot)
-
-Mp = imag(conj(DDot)*(f(zVar)-D) + 1i*aDot*abs(f(zVar)-D).^2);
 
 end
