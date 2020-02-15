@@ -12,25 +12,25 @@ plot(zeta);
 
 flow = 'strain';
 %flow = 'vortices';
-flow = 'uniform';
+%flow = 'uniform';
 
 if strcmp(flow,'strain')
 
-[potential,compVel] = strain(q,a);
+[potential,velocity] = strain(q,a);
 vals = imag(potential(exp(1i*[+1;-1]*pi/4).*linspace(q,1,10)));
-clim = [0,3];
+clim = [0,10];
 
 elseif strcmp(flow,'vortices')
     
     beta = -sqrt(q);
-[potential,compVel] = vortices(beta,q,[1e3,100]);
+[potential,velocity] = vortices(beta,q,[1e3,100]);
 vals = imag(potential(exp(1i*[+1;-1]*pi/4).*linspace(q,1,10)));
 clim = [0,1];
 
 elseif strcmp(flow,'uniform')
     
-[potential,compVel] = uniform(q,a);
-vals = imag(linspace(potential(-1),potential(.9),100));
+[potential,velocity] = uniform(q,a);
+vals = imag(potential(exp(1i*[+1;-1]*pi/4).*linspace(q,1,10)));
 
 clim = [0,1.5];
 
@@ -39,7 +39,7 @@ end
 z = f(zeta);
 zb = f(zetab);
 
-ax = [-4,4,0,15];
+ax = [-4,4,0,7];
 subplot(2,1,1)
 plot(z,'k','LineWidth',2);
 hold on
@@ -50,7 +50,7 @@ axis equal
 axis(ax)
 
 subplot(2,1,2)
-pcolor(real(z),imag(z),real(compVel(zeta)./fd(zeta)));
+pcolor(real(z),imag(z),abs(velocity(zeta)./fd(zeta)./z.^2));
 colormap jet; shading interp; caxis(clim); colorbar
 hold on
 contour(real(z),imag(z),imag(potential(zeta)),vals(:),'w','LineWidth',1);
